@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Object Builder → OBJ Exporter</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0c0c0f;
+      --panel:    #13131a;
+      --panel2:   #1a1a24;
+      --border:   #2a2a3a;
+      --accent:   #ff6b2b;
+      --accent2:  #4af0c4;
+      --text:     #dddaf4;
+      --muted:    #5a5a78;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 52px 1fr;
+      grid-template-columns: 300px 1fr;
+      overflow: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    header .logo {
+      font-family: var(--font-sans);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+    header .logo span { color: var(--accent); }
+    header .tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 2px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    header .spacer { flex: 1; }
+    header .hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── SIDEBAR ── */
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    aside::-webkit-scrollbar { width: 4px; }
+    aside::-webkit-scrollbar-track { background: transparent; }
+    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .section-label {
+      padding: 14px 20px 8px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Shape Picker */
+    .shape-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 14px;
+    }
+    .shape-btn {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      padding: 10px 6px 8px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .shape-btn svg { width: 28px; height: 28px; opacity: 0.7; transition: opacity 0.15s; }
+    .shape-btn:hover { border-color: var(--accent); color: var(--text); }
+    .shape-btn:hover svg { opacity: 1; }
+    .shape-btn.active {
+      border-color: var(--accent);
+      background: rgba(255,107,43,0.08);
+      color: var(--accent);
+    }
+    .shape-btn.active svg { opacity: 1; }
+
+    /* Parameters */
+    .params { padding: 8px 0 14px; }
+    .param-row {
+      padding: 8px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .param-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .param-row label span {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+    .param-row input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+    }
+    .param-row input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 6px rgba(255,107,43,0.5);
+    }
+    .param-row input[type=range]:hover::-webkit-slider-thumb {
+      box-shadow: 0 0 10px rgba(255,107,43,0.8);
+    }
+
+    /* Material / Display controls */
+    .display-row {
+      padding: 8px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .display-row label {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .color-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 6px 0 0;
+    }
+    .color-swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.1s, transform 0.1s;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: var(--text); }
+
+    .toggle-row {
+      padding: 8px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toggle-row label { font-size: 11px; color: var(--muted); }
+    .toggle {
+      width: 36px; height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      background: var(--text);
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* Export area */
+    .export-area {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .export-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .export-btn:hover {
+      background: #ff8450;
+      box-shadow: 0 0 20px rgba(255,107,43,0.4);
+      transform: translateY(-1px);
+    }
+    .export-btn:active { transform: translateY(0); }
+    .export-meta {
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+    #objPreview {
+      margin-top: 10px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 9.5px;
+      color: var(--accent2);
+      line-height: 1.5;
+      max-height: 90px;
+      overflow: hidden;
+      display: none;
+    }
+
+    /* ── VIEWPORT ── */
+    main {
+      position: relative;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    #canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* grid overlay */
+    main::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .viewport-label {
+      position: absolute;
+      top: 16px; left: 20px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .viewport-label strong { color: var(--accent2); font-size: 13px; display: block; margin-bottom: 2px; }
+
+    .axis-legend {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      font-size: 10px;
+      color: var(--muted);
+      z-index: 2;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: right;
+    }
+    .axis-legend span { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Toast */
+    #toast {
+      position: absolute;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 6px;
+      z-index: 10;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">MESH<span>FORGE</span></div>
+    <div class="tag">OBJ Exporter</div>
+    <div class="spacer"></div>
+    <div class="hint">Drag to orbit &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Right-drag to pan</div>
+  </header>
+
+  <aside>
+    <div class="section-label">Shape</div>
+    <div class="shape-grid" id="shapeGrid">
+
+      <button class="shape-btn active" data-shape="box">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 22L16 28L26 22V10L16 4L6 10V22Z"/>
+          <path d="M16 28V16" stroke-dasharray="2 2"/>
+          <path d="M6 10L16 16L26 10" stroke-dasharray="2 2"/>
+        </svg>
+        BOX
+      </button>
+
+      <button class="shape-btn" data-shape="sphere">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="16" cy="16" r="11"/>
+          <ellipse cx="16" cy="16" rx="11" ry="5" stroke-dasharray="3 2"/>
+          <path d="M16 5V27" stroke-dasharray="3 2"/>
+        </svg>
+        SPHERE
+      </button>
+
+      <button class="shape-btn" data-shape="cylinder">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <ellipse cx="16" cy="9" rx="10" ry="4"/>
+          <ellipse cx="16" cy="23" rx="10" ry="4" stroke-dasharray="3 2"/>
+          <line x1="6" y1="9" x2="6" y2="23"/>
+          <line x1="26" y1="9" x2="26" y2="23"/>
+        </svg>
+        CYLINDER
+      </button>
+
+      <button class="shape-btn" data-shape="torus">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <ellipse cx="16" cy="16" rx="11" ry="5"/>
+          <ellipse cx="16" cy="16" rx="5" ry="2.2"/>
+          <ellipse cx="16" cy="18" rx="11" ry="5" stroke-dasharray="3 2"/>
+        </svg>
+        TORUS
+      </button>
+
+      <button class="shape-btn" data-shape="cone">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M16 4L26 26H6L16 4Z"/>
+          <ellipse cx="16" cy="26" rx="10" ry="3.5" stroke-dasharray="3 2"/>
+        </svg>
+        CONE
+      </button>
+
+      <button class="shape-btn" data-shape="icosahedron">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polygon points="16,4 26,14 22,26 10,26 6,14"/>
+          <polygon points="16,4 6,14 16,10 26,14"/>
+          <line x1="16" y1="10" x2="10" y2="26" stroke-dasharray="2 2"/>
+          <line x1="16" y1="10" x2="22" y2="26" stroke-dasharray="2 2"/>
+        </svg>
+        ISO
+      </button>
+
+    </div>
+
+    <div class="section-label">Parameters</div>
+    <div class="params" id="paramsContainer"></div>
+
+    <div class="section-label">Material</div>
+    <div class="display-row">
+      <label>Color</label>
+      <div class="color-row" id="colorRow">
+        <div class="color-swatch active" data-color="#4af0c4" style="background:#4af0c4"></div>
+        <div class="color-swatch" data-color="#ff6b2b" style="background:#ff6b2b"></div>
+        <div class="color-swatch" data-color="#4a9eff" style="background:#4a9eff"></div>
+        <div class="color-swatch" data-color="#f0e04a" style="background:#f0e04a"></div>
+        <div class="color-swatch" data-color="#e04af0" style="background:#e04af0"></div>
+        <div class="color-swatch" data-color="#ffffff" style="background:#ffffff"></div>
+        <div class="color-swatch" data-color="#aaaaaa" style="background:#aaaaaa"></div>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <label>Wireframe</label>
+      <div class="toggle" id="wireframeToggle"></div>
+    </div>
+
+    <div class="toggle-row">
+      <label>Show Grid</label>
+      <div class="toggle on" id="gridToggle"></div>
+    </div>
+
+    <div class="toggle-row">
+      <label>Auto-Rotate</label>
+      <div class="toggle on" id="rotateToggle"></div>
+    </div>
+
+    <div class="export-area">
+      <button class="export-btn" id="exportBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 3v12M7 11l5 5 5-5M3 18h18v2H3z"/>
+        </svg>
+        Export .OBJ
+      </button>
+      <div class="export-meta" id="exportMeta">Ready to export</div>
+      <div id="objPreview"></div>
+    </div>
+
+  </aside>
+
+  <main id="viewport">
+    <canvas id="canvas"></canvas>
+    <div class="viewport-label">
+      <strong id="shapeName">BOX</strong>
+      Perspective View
+    </div>
+    <div class="axis-legend">
+      <span><span class="dot" style="background:#ff5555"></span> X</span>
+      <span><span class="dot" style="background:#55ff55"></span> Y</span>
+      <span><span class="dot" style="background:#5555ff"></span> Z</span>
+    </div>
+    <div id="toast">✓ model.obj downloaded</div>
+  </main>
+
+<script>
+// ──────────────────────────────────────────────
+//  THREE.JS SCENE SETUP
+// ──────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const viewport = document.getElementById('viewport');
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+camera.position.set(3, 2.5, 4);
+camera.lookAt(0, 0, 0);
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x334466, 0.8);
+scene.add(ambient);
+
+const key = new THREE.DirectionalLight(0xffffff, 1.2);
+key.position.set(5, 8, 5);
+key.castShadow = true;
+scene.add(key);
+
+const fill = new THREE.DirectionalLight(0x4af0c4, 0.3);
+fill.position.set(-5, 2, -3);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xff6b2b, 0.4);
+rim.position.set(0, -4, -5);
+scene.add(rim);
+
+// Grid
+const grid = new THREE.GridHelper(10, 20, 0x2a2a3a, 0x1e1e2a);
+scene.add(grid);
+
+// Axis helper (small)
+const axisHelper = new THREE.AxesHelper(1.2);
+scene.add(axisHelper);
+
+// Current mesh
+let currentMesh = null;
+let currentColor = '#4af0c4';
+let isWireframe = false;
+let autoRotate = true;
+
+function createMesh(geo) {
+  if (currentMesh) scene.remove(currentMesh);
+  const mat = new THREE.MeshPhongMaterial({
+    color: currentColor,
+    wireframe: isWireframe,
+    shininess: 80,
+    specular: 0x444444,
+  });
+  currentMesh = new THREE.Mesh(geo, mat);
+  currentMesh.castShadow = true;
+  currentMesh.receiveShadow = true;
+  scene.add(currentMesh);
+  updateExportMeta();
+}
+
+// ──────────────────────────────────────────────
+//  SHAPE DEFINITIONS
+// ──────────────────────────────────────────────
+const shapes = {
+  box: {
+    label: 'BOX',
+    params: [
+      { id: 'width',   label: 'Width',    min: 0.2, max: 4, step: 0.1, default: 2 },
+      { id: 'height',  label: 'Height',   min: 0.2, max: 4, step: 0.1, default: 2 },
+      { id: 'depth',   label: 'Depth',    min: 0.2, max: 4, step: 0.1, default: 2 },
+      { id: 'segs',    label: 'Segments', min: 1,   max: 8, step: 1,   default: 1 },
+    ],
+    build: (p) => new THREE.BoxGeometry(p.width, p.height, p.depth, p.segs, p.segs, p.segs),
+  },
+  sphere: {
+    label: 'SPHERE',
+    params: [
+      { id: 'radius',  label: 'Radius',   min: 0.2, max: 3, step: 0.1, default: 1.2 },
+      { id: 'wsegs',   label: 'W Segs',   min: 4,  max: 64, step: 2,   default: 32 },
+      { id: 'hsegs',   label: 'H Segs',   min: 3,  max: 32, step: 1,   default: 16 },
+    ],
+    build: (p) => new THREE.SphereGeometry(p.radius, p.wsegs, p.hsegs),
+  },
+  cylinder: {
+    label: 'CYLINDER',
+    params: [
+      { id: 'rtop',    label: 'Top Radius',    min: 0,   max: 3, step: 0.1, default: 0.8 },
+      { id: 'rbot',    label: 'Bottom Radius', min: 0,   max: 3, step: 0.1, default: 0.8 },
+      { id: 'height',  label: 'Height',        min: 0.2, max: 5, step: 0.1, default: 2 },
+      { id: 'rsegs',   label: 'Radial Segs',   min: 3,  max: 64, step: 1,   default: 32 },
+    ],
+    build: (p) => new THREE.CylinderGeometry(p.rtop, p.rbot, p.height, p.rsegs),
+  },
+  torus: {
+    label: 'TORUS',
+    params: [
+      { id: 'radius',  label: 'Radius',       min: 0.3, max: 3,  step: 0.1, default: 1.2 },
+      { id: 'tube',    label: 'Tube',         min: 0.05, max: 1, step: 0.05, default: 0.35 },
+      { id: 'rsegs',   label: 'Radial Segs',  min: 3,  max: 32,  step: 1,   default: 16 },
+      { id: 'tsegs',   label: 'Tubular Segs', min: 3,  max: 128, step: 2,   default: 64 },
+    ],
+    build: (p) => new THREE.TorusGeometry(p.radius, p.tube, p.rsegs, p.tsegs),
+  },
+  cone: {
+    label: 'CONE',
+    params: [
+      { id: 'radius',  label: 'Radius',      min: 0.1, max: 3, step: 0.1, default: 1 },
+      { id: 'height',  label: 'Height',      min: 0.2, max: 5, step: 0.1, default: 2.5 },
+      { id: 'rsegs',   label: 'Radial Segs', min: 3,  max: 64, step: 1,   default: 32 },
+    ],
+    build: (p) => new THREE.ConeGeometry(p.radius, p.height, p.rsegs),
+  },
+  icosahedron: {
+    label: 'ICOSAHEDRON',
+    params: [
+      { id: 'radius',  label: 'Radius', min: 0.2, max: 3,  step: 0.1, default: 1.4 },
+      { id: 'detail',  label: 'Detail', min: 0,   max: 5,  step: 1,   default: 1 },
+    ],
+    build: (p) => new THREE.IcosahedronGeometry(p.radius, p.detail),
+  },
+};
+
+let currentShape = 'box';
+let paramValues = {};
+
+function initParams(shapeName) {
+  const shape = shapes[shapeName];
+  paramValues = {};
+  shape.params.forEach(p => { paramValues[p.id] = p.default; });
+}
+
+function renderParams(shapeName) {
+  const container = document.getElementById('paramsContainer');
+  container.innerHTML = '';
+  shapes[shapeName].params.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'param-row';
+    row.innerHTML = `
+      <label>${p.label} <span id="val-${p.id}">${paramValues[p.id]}</span></label>
+      <input type="range" id="range-${p.id}"
+        min="${p.min}" max="${p.max}" step="${p.step}" value="${paramValues[p.id]}" />
+    `;
+    container.appendChild(row);
+    row.querySelector(`#range-${p.id}`).addEventListener('input', e => {
+      paramValues[p.id] = parseFloat(e.target.value);
+      document.getElementById(`val-${p.id}`).textContent = paramValues[p.id];
+      rebuildMesh();
+    });
+  });
+}
+
+function rebuildMesh() {
+  const shape = shapes[currentShape];
+  const geo = shape.build(paramValues);
+  createMesh(geo);
+}
+
+function selectShape(name) {
+  currentShape = name;
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.toggle('active', b.dataset.shape === name));
+  document.getElementById('shapeName').textContent = shapes[name].label;
+  initParams(name);
+  renderParams(name);
+  rebuildMesh();
+}
+
+// ──────────────────────────────────────────────
+//  OBJ EXPORTER (hand-rolled)
+// ──────────────────────────────────────────────
+function buildOBJ(mesh) {
+  const geo = mesh.geometry;
+  const pos = geo.attributes.position;
+  const nor = geo.attributes.normal;
+  const uvs = geo.attributes.uv;
+  const idx = geo.index;
+
+  let out = '# Generated by MeshForge\n';
+  out += `# Shape: ${shapes[currentShape].label}\n`;
+  out += `# Vertices: ${pos.count}\n\n`;
+  out += `o ${shapes[currentShape].label}\n\n`;
+
+  for (let i = 0; i < pos.count; i++) {
+    out += `v ${pos.getX(i).toFixed(6)} ${pos.getY(i).toFixed(6)} ${pos.getZ(i).toFixed(6)}\n`;
+  }
+  out += '\n';
+
+  if (uvs) {
+    for (let i = 0; i < uvs.count; i++) {
+      out += `vt ${uvs.getX(i).toFixed(6)} ${uvs.getY(i).toFixed(6)}\n`;
+    }
+    out += '\n';
+  }
+
+  if (nor) {
+    for (let i = 0; i < nor.count; i++) {
+      out += `vn ${nor.getX(i).toFixed(6)} ${nor.getY(i).toFixed(6)} ${nor.getZ(i).toFixed(6)}\n`;
+    }
+    out += '\n';
+  }
+
+  out += 'g mesh\n';
+  const hasuv = !!uvs, hasnor = !!nor;
+
+  if (idx) {
+    for (let i = 0; i < idx.count; i += 3) {
+      const a = idx.getX(i) + 1, b = idx.getX(i+1) + 1, c = idx.getX(i+2) + 1;
+      if (hasuv && hasnor) out += `f ${a}/${a}/${a} ${b}/${b}/${b} ${c}/${c}/${c}\n`;
+      else if (hasnor)     out += `f ${a}//${a} ${b}//${b} ${c}//${c}\n`;
+      else                 out += `f ${a} ${b} ${c}\n`;
+    }
+  } else {
+    for (let i = 0; i < pos.count; i += 3) {
+      const a = i+1, b = i+2, c = i+3;
+      if (hasuv && hasnor) out += `f ${a}/${a}/${a} ${b}/${b}/${b} ${c}/${c}/${c}\n`;
+      else if (hasnor)     out += `f ${a}//${a} ${b}//${b} ${c}//${c}\n`;
+      else                 out += `f ${a} ${b} ${c}\n`;
+    }
+  }
+
+  return out;
+}
+
+function updateExportMeta() {
+  if (!currentMesh) return;
+  const geo = currentMesh.geometry;
+  const verts = geo.attributes.position.count;
+  const faces = geo.index ? geo.index.count / 3 : verts / 3;
+  document.getElementById('exportMeta').textContent =
+    `${verts} vertices · ${Math.floor(faces)} faces`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (!currentMesh) return;
+  const obj = buildOBJ(currentMesh);
+  const blob = new Blob([obj], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${shapes[currentShape].label.toLowerCase()}_meshforge.obj`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Preview snippet
+  const preview = document.getElementById('objPreview');
+  const lines = obj.split('\n').slice(0, 8).join('\n');
+  preview.textContent = lines + '\n...';
+  preview.style.display = 'block';
+
+  showToast(`✓ ${a.download} exported`);
+});
+
+// ──────────────────────────────────────────────
+//  COLOR + TOGGLES
+// ──────────────────────────────────────────────
+document.querySelectorAll('.color-swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    currentColor = sw.dataset.color;
+    if (currentMesh) currentMesh.material.color.set(currentColor);
+  });
+});
+
+function toggleEl(id, callback) {
+  const el = document.getElementById(id);
+  let state = el.classList.contains('on');
+  el.addEventListener('click', () => {
+    state = !state;
+    el.classList.toggle('on', state);
+    callback(state);
+  });
+  return () => state;
+}
+
+toggleEl('wireframeToggle', (v) => {
+  isWireframe = v;
+  if (currentMesh) currentMesh.material.wireframe = v;
+});
+
+const getGrid = toggleEl('gridToggle', (v) => { grid.visible = v; });
+toggleEl('rotateToggle', (v) => { autoRotate = v; });
+
+// ──────────────────────────────────────────────
+//  SHAPE BUTTONS
+// ──────────────────────────────────────────────
+document.getElementById('shapeGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.shape-btn');
+  if (btn) selectShape(btn.dataset.shape);
+});
+
+// ──────────────────────────────────────────────
+//  SIMPLE ORBIT CONTROLS
+// ──────────────────────────────────────────────
+let spherical = { theta: 0.8, phi: 1.1, radius: 5.5 };
+let panOffset = new THREE.Vector3(0, 0, 0);
+let isDragging = false, isRightDrag = false;
+let lastX = 0, lastY = 0;
+
+viewport.addEventListener('mousedown', e => {
+  isDragging = true;
+  isRightDrag = e.button === 2;
+  lastX = e.clientX; lastY = e.clientY;
+  e.preventDefault();
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  if (isRightDrag) {
+    // Pan
+    const right = new THREE.Vector3();
+    const up = new THREE.Vector3();
+    camera.getWorldDirection(new THREE.Vector3());
+    right.crossVectors(camera.getWorldDirection(new THREE.Vector3()), camera.up).normalize();
+    up.copy(camera.up).normalize();
+    panOffset.addScaledVector(right, -dx * 0.005 * spherical.radius * 0.2);
+    panOffset.addScaledVector(up, dy * 0.005 * spherical.radius * 0.2);
+  } else {
+    spherical.theta -= dx * 0.006;
+    spherical.phi   -= dy * 0.006;
+    spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi));
+  }
+  updateCamera();
+});
+viewport.addEventListener('wheel', e => {
+  spherical.radius = Math.max(1, Math.min(20, spherical.radius + e.deltaY * 0.01));
+  updateCamera();
+}, { passive: true });
+viewport.addEventListener('contextmenu', e => e.preventDefault());
+
+function updateCamera() {
+  const x = spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+  const y = spherical.radius * Math.cos(spherical.phi);
+  const z = spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+  camera.position.set(x + panOffset.x, y + panOffset.y, z + panOffset.z);
+  camera.lookAt(panOffset.x, panOffset.y, panOffset.z);
+}
+updateCamera();
+
+// ──────────────────────────────────────────────
+//  RESIZE
+// ──────────────────────────────────────────────
+function resize() {
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(viewport);
+resize();
+
+// ──────────────────────────────────────────────
+//  RENDER LOOP
+// ──────────────────────────────────────────────
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.008;
+  if (autoRotate && currentMesh) {
+    spherical.theta += 0.004;
+    updateCamera();
+  }
+  renderer.render(scene, camera);
+}
+
+// ── INIT ──
+selectShape('box');
+animate();
+</script>
+</body>
+</html>
