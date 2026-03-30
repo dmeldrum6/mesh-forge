@@ -396,6 +396,14 @@
       font-family: var(--font-mono);
     }
     .scene-item-remove:hover { color: var(--accent); }
+    .scene-item { cursor: pointer; }
+    .scene-item.selected {
+      border-color: var(--accent2);
+      background: rgba(74,240,196,0.06);
+    }
+
+    /* Transform panel */
+    #transformSection { border-top: 1px solid var(--border); }
 
     /* Export button disabled state */
     .export-btn:disabled {
@@ -530,6 +538,11 @@
       <div class="scene-empty">No objects yet — add one above</div>
     </div>
 
+    <div id="transformSection" style="display:none">
+      <div class="section-label">Transform</div>
+      <div id="transformParams"></div>
+    </div>
+
     <div class="export-area">
       <button class="add-to-scene-btn" id="addToSceneBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -613,6 +626,10 @@ let autoRotate = true;
 
 // Committed scene objects
 let committedObjects = [];
+
+// Selection state
+let selectedIndex = -1;
+let boxHelper = null;
 
 function createMesh(geo) {
   if (currentMesh) scene.remove(currentMesh);
@@ -799,6 +816,79 @@ function buildMultiOBJ(objects) {
 }
 
 // ──────────────────────────────────────────────
+//  SELECTION + TRANSFORM PANEL
+// ──────────────────────────────────────────────
+const transformDefs = [
+  { group: 'Position', prop: 'position', axes: ['X','Y','Z'], min: -4, max: 4, step: 0.1,
+    get: (mesh, a) => parseFloat(mesh.position[a.toLowerCase()].toFixed(2)),
+    set: (mesh, a, v) => { mesh.position[a.toLowerCase()] = v; } },
+  { group: 'Rotation', prop: 'rotation', axes: ['X','Y','Z'], min: 0, max: 360, step: 1,
+    get: (mesh, a) => {
+      const deg = THREE.MathUtils.radToDeg(mesh.rotation[a.toLowerCase()]);
+      return Math.round(((deg % 360) + 360) % 360);
+    },
+    set: (mesh, a, v) => { mesh.rotation[a.toLowerCase()] = THREE.MathUtils.degToRad(v); } },
+  { group: 'Scale', prop: 'scale', axes: ['X','Y','Z'], min: 0.1, max: 4, step: 0.1,
+    get: (mesh, a) => parseFloat(mesh.scale[a.toLowerCase()].toFixed(2)),
+    set: (mesh, a, v) => { mesh.scale[a.toLowerCase()] = v; } },
+];
+
+function fmtTxf(val, step) {
+  return step < 1 ? parseFloat(val.toFixed(1)) : Math.round(val);
+}
+
+function selectSceneObject(index) {
+  // Remove existing BoxHelper
+  if (boxHelper) { scene.remove(boxHelper); boxHelper = null; }
+
+  // Clear visual highlights
+  document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('selected'));
+
+  if (index < 0 || index >= committedObjects.length) {
+    selectedIndex = -1;
+    document.getElementById('transformSection').style.display = 'none';
+    return;
+  }
+
+  selectedIndex = index;
+  const obj = committedObjects[index];
+
+  // BoxHelper highlight
+  boxHelper = new THREE.BoxHelper(obj.mesh, 0x4af0c4);
+  scene.add(boxHelper);
+
+  // Highlight list item
+  const items = document.querySelectorAll('.scene-item');
+  if (items[index]) items[index].classList.add('selected');
+
+  // Build transform panel
+  const section = document.getElementById('transformSection');
+  const container = document.getElementById('transformParams');
+  section.style.display = '';
+  container.innerHTML = '';
+
+  transformDefs.forEach(def => {
+    def.axes.forEach(axis => {
+      const curVal = def.get(obj.mesh, axis);
+      const id = `txf-${def.prop}-${axis}`;
+      const row = document.createElement('div');
+      row.className = 'param-row';
+      row.innerHTML = `
+        <label>${def.group} ${axis} <span id="val-${id}">${fmtTxf(curVal, def.step)}</span></label>
+        <input type="range" id="${id}" min="${def.min}" max="${def.max}" step="${def.step}" value="${curVal}" />
+      `;
+      container.appendChild(row);
+      row.querySelector(`#${id}`).addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        document.getElementById(`val-${id}`).textContent = fmtTxf(v, def.step);
+        def.set(obj.mesh, axis, v);
+        if (boxHelper) boxHelper.update();
+      });
+    });
+  });
+}
+
+// ──────────────────────────────────────────────
 //  SCENE OBJECT LIST
 // ──────────────────────────────────────────────
 function renderSceneList() {
@@ -820,11 +910,16 @@ function renderSceneList() {
   committedObjects.forEach((obj, i) => {
     const item = document.createElement('div');
     item.className = 'scene-item';
+    if (i === selectedIndex) item.classList.add('selected');
     item.innerHTML = `
       <div class="scene-item-swatch" style="background:${obj.color}"></div>
       <span class="scene-item-name">${obj.shapeName}</span>
       <button class="scene-item-remove" data-index="${i}" title="Remove">×</button>
     `;
+    item.addEventListener('click', e => {
+      if (e.target.closest('.scene-item-remove')) return;
+      selectSceneObject(i === selectedIndex ? -1 : i);
+    });
     list.appendChild(item);
   });
 
@@ -873,6 +968,16 @@ function addToScene() {
 function removeFromScene(index) {
   const obj = committedObjects[index];
   if (!obj) return;
+
+  // Handle selection state before splicing
+  if (selectedIndex === index) {
+    if (boxHelper) { scene.remove(boxHelper); boxHelper = null; }
+    selectedIndex = -1;
+    document.getElementById('transformSection').style.display = 'none';
+  } else if (selectedIndex > index) {
+    selectedIndex--;
+  }
+
   scene.remove(obj.mesh);
   obj.mesh.geometry.dispose();
   obj.mesh.material.dispose();
@@ -943,7 +1048,10 @@ toggleEl('rotateToggle', (v) => { autoRotate = v; });
 // ──────────────────────────────────────────────
 document.getElementById('shapeGrid').addEventListener('click', e => {
   const btn = e.target.closest('.shape-btn');
-  if (btn) selectShape(btn.dataset.shape);
+  if (btn) {
+    selectSceneObject(-1);
+    selectShape(btn.dataset.shape);
+  }
 });
 
 // ──────────────────────────────────────────────
@@ -1019,6 +1127,7 @@ function animate() {
     spherical.theta += 0.004;
     updateCamera();
   }
+  if (boxHelper) boxHelper.update();
   renderer.render(scene, camera);
 }
 
