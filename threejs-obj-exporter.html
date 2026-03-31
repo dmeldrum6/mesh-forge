@@ -1005,17 +1005,7 @@ result.add(body);
 
     <!-- ── SCENE PANEL ── -->
     <div class="sidepanel" id="panel-scene" style="display:none">
-      <div class="section-label" id="sceneCountLabel">Objects in Scene</div>
-      <div class="scene-list" id="sceneList">
-        <div class="scene-empty">No objects yet — switch to Build to add one</div>
-      </div>
-
-      <div id="transformSection" style="display:none">
-        <div class="section-label">Transform</div>
-        <div id="transformParams"></div>
-      </div>
-
-      <div class="export-area" style="margin-top:auto;">
+      <div class="export-area">
         <button class="export-btn" id="exportBtn" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M12 3v12M7 11l5 5 5-5M3 18h18v2H3z"/>
@@ -1024,6 +1014,16 @@ result.add(body);
         </button>
         <div class="export-meta" id="exportMeta">Add objects to export</div>
         <div id="objPreview"></div>
+      </div>
+
+      <div class="section-label" id="sceneCountLabel">Objects in Scene</div>
+      <div class="scene-list" id="sceneList">
+        <div class="scene-empty">No objects yet — switch to Build to add one</div>
+      </div>
+
+      <div id="transformSection" style="display:none">
+        <div class="section-label">Transform</div>
+        <div id="transformParams"></div>
       </div>
     </div>
 
