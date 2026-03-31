@@ -86,6 +86,28 @@
       background: rgba(74,240,196,0.12);
       box-shadow: 0 0 10px rgba(74,240,196,0.2);
     }
+    .new-project-btn {
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--muted);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .new-project-btn:hover {
+      border-color: var(--text);
+      color: var(--text);
+      background: rgba(221,218,244,0.07);
+    }
 
     /* ── IMPORT MODAL ── */
     #importOverlay {
@@ -774,6 +796,12 @@
     <div class="tag">OBJ Exporter</div>
     <div class="spacer"></div>
     <div class="hint">Drag to orbit &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Right-drag to pan</div>
+    <button class="new-project-btn" id="newProjectBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+      </svg>
+      New Project
+    </button>
     <button class="import-btn" id="openImportBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <polyline points="8 17 12 21 16 17"/><line x1="12" y1="21" x2="12" y2="9"/>
@@ -1928,6 +1956,52 @@ dropZone.addEventListener('drop', e => {
   dropZone.classList.remove('drag-over');
   handleFile(e.dataTransfer.files[0]);
 });
+
+// ──────────────────────────────────────────────
+//  NEW PROJECT
+// ──────────────────────────────────────────────
+function newProject() {
+  // Remove all committed objects from scene and dispose resources
+  for (const obj of committedObjects) {
+    scene.remove(obj.mesh);
+    obj.mesh.geometry.dispose();
+    obj.mesh.material.dispose();
+  }
+  committedObjects = [];
+
+  // Clear selection
+  if (boxHelper) { scene.remove(boxHelper); boxHelper = null; }
+  selectedIndex = -1;
+  document.getElementById('transformSection').style.display = 'none';
+
+  // Reset color to default
+  currentColor = '#4af0c4';
+  document.querySelectorAll('.color-swatch').forEach((s, i) => {
+    s.classList.toggle('active', i === 0);
+  });
+
+  // Reset wireframe toggle if it's on
+  if (isWireframe) {
+    isWireframe = false;
+    const wfEl = document.getElementById('wireframeToggle');
+    wfEl.classList.remove('on');
+    if (currentMesh) currentMesh.material.wireframe = false;
+  }
+
+  // Reset camera to initial position
+  spherical.theta = 0.8;
+  spherical.phi = 1.1;
+  spherical.radius = 5.5;
+  panOffset.set(0, 0, 0);
+  updateCamera();
+
+  // Reset shape to box and rebuild staging mesh
+  selectShape('box');
+  renderSceneList();
+  switchSidebarTab('shape');
+}
+
+document.getElementById('newProjectBtn').addEventListener('click', newProject);
 
 // ── INIT ──
 selectShape('box');
