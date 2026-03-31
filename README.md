@@ -9,6 +9,8 @@ Build 3D scenes from primitives, import custom Three.js geometry, and export eve
 ![No dependencies](https://img.shields.io/badge/dependencies-none-blue?style=flat-square)
 
 ---
+<img width="1917" height="909" alt="image" src="https://github.com/user-attachments/assets/c45cd2bf-da80-4cf2-9545-8ede1a72509d" />
+
 
 ## Features
 
