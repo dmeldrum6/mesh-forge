@@ -65,6 +65,290 @@
       font-size: 11px;
       color: var(--muted);
     }
+    .import-btn {
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .import-btn:hover {
+      background: rgba(74,240,196,0.12);
+      box-shadow: 0 0 10px rgba(74,240,196,0.2);
+    }
+
+    /* ── IMPORT MODAL ── */
+    #importOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8,8,12,0.85);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #importOverlay.open { display: flex; }
+    #importModal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: min(700px, 92vw);
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-header h2 {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      flex: 1;
+    }
+    .modal-header h2 span { color: var(--accent2); }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.1s;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-body::-webkit-scrollbar { width: 4px; }
+    .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Tab switcher */
+    .modal-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-tab {
+      padding: 8px 18px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .modal-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+    .modal-tab:hover:not(.active) { color: var(--text); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Prompt helper */
+    .prompt-box {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .prompt-box-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .prompt-copy-btn {
+      background: none;
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all 0.1s;
+    }
+    .prompt-copy-btn:hover { background: rgba(74,240,196,0.12); }
+    .prompt-text {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.75;
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+    }
+    .prompt-text em { color: var(--accent2); font-style: normal; }
+
+    /* Subject input */
+    .subject-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .subject-row label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .subject-input {
+      flex: 1;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .subject-input:focus { border-color: var(--accent2); }
+    .subject-input::placeholder { color: var(--muted); }
+    .gen-prompt-btn {
+      padding: 7px 14px;
+      background: rgba(74,240,196,0.1);
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 5px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .gen-prompt-btn:hover { background: rgba(74,240,196,0.2); }
+
+    /* Code textarea */
+    .code-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    #importCodeArea {
+      width: 100%;
+      min-height: 200px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--accent2);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.6;
+      padding: 14px;
+      border-radius: 6px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+      tab-size: 2;
+    }
+    #importCodeArea:focus { border-color: var(--accent2); }
+    #importCodeArea::placeholder { color: var(--muted); opacity: 0.5; }
+    #importError {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.3);
+      border-radius: 5px;
+      font-size: 11px;
+      color: #ff8080;
+      font-family: var(--font-mono);
+      display: none;
+    }
+
+    /* File import tab */
+    .file-drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 14px;
+    }
+    .file-drop-zone:hover, .file-drop-zone.drag-over {
+      border-color: var(--accent2);
+      background: rgba(74,240,196,0.04);
+    }
+    .file-drop-zone svg { margin-bottom: 12px; color: var(--muted); }
+    .file-drop-zone p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .file-drop-zone p strong { color: var(--text); }
+    #fileInput { display: none; }
+    #filePreview {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: none;
+      font-family: var(--font-mono);
+      line-height: 1.6;
+    }
+    #filePreview strong { color: var(--accent2); }
+
+    /* Modal footer */
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-footer-hint { flex: 1; font-size: 10px; color: var(--muted); line-height: 1.5; }
+    .modal-import-btn {
+      padding: 10px 24px;
+      background: var(--accent2);
+      border: none;
+      color: #0c0c0f;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .modal-import-btn:hover {
+      background: #6fffd9;
+      box-shadow: 0 0 16px rgba(74,240,196,0.4);
+    }
 
     /* ── SIDEBAR ── */
     aside {
@@ -72,12 +356,64 @@
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Sidebar tabs */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 8px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .sidebar-tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.02); }
+    .sidebar-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .sidebar-tab[data-sidepanel="scene"].active { border-bottom-color: var(--accent2); color: var(--accent2); }
+    .scene-tab-badge {
+      background: var(--accent2);
+      color: #0c0c0f;
+      font-size: 9px;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    /* Sidepanels */
+    .sidepanel {
+      flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
     }
-    aside::-webkit-scrollbar { width: 4px; }
-    aside::-webkit-scrollbar-track { background: transparent; }
-    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .sidepanel::-webkit-scrollbar { width: 4px; }
+    .sidepanel::-webkit-scrollbar-track { background: transparent; }
+    .sidepanel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .section-label {
       padding: 14px 20px 8px;
@@ -438,126 +774,257 @@
     <div class="tag">OBJ Exporter</div>
     <div class="spacer"></div>
     <div class="hint">Drag to orbit &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Right-drag to pan</div>
+    <button class="import-btn" id="openImportBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="8 17 12 21 16 17"/><line x1="12" y1="21" x2="12" y2="9"/>
+        <path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/>
+      </svg>
+      Import Code
+    </button>
   </header>
 
+  <!-- ── IMPORT MODAL ── -->
+  <div id="importOverlay">
+    <div id="importModal">
+      <div class="modal-header">
+        <h2>Import <span>Three.js Code</span></h2>
+        <button class="modal-close" id="closeImportBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="paste">Paste Code</button>
+          <button class="modal-tab" data-tab="file">Import File</button>
+          <button class="modal-tab" data-tab="prompt">Prompt Guide</button>
+        </div>
+
+        <!-- TAB: Paste Code -->
+        <div class="tab-panel active" id="tab-paste">
+          <div class="subject-row">
+            <label>Object:</label>
+            <input class="subject-input" id="subjectInput" type="text" placeholder="e.g. castle tower, spaceship, medieval sword…" />
+            <button class="gen-prompt-btn" id="copyPromptBtn">Copy Prompt</button>
+          </div>
+          <div class="code-label">Paste Three.js code below</div>
+          <textarea id="importCodeArea" spellcheck="false" placeholder="// Paste your Three.js code here.
+// Your code must assign a THREE.Group, THREE.Mesh,
+// or THREE.BufferGeometry to a variable called 'result'.
+//
+// Example:
+// const result = new THREE.Group();
+// const geo = new THREE.BoxGeometry(1, 2, 1);
+// const mat = new THREE.MeshPhongMaterial({ color: 0x888888 });
+// result.add(new THREE.Mesh(geo, mat));"></textarea>
+          <div id="importError"></div>
+        </div>
+
+        <!-- TAB: Import File -->
+        <div class="tab-panel" id="tab-file">
+          <div class="file-drop-zone" id="dropZone">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 12px">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            <p><strong>Drop a .html or .js file here</strong><br/>or click to browse</p>
+          </div>
+          <input type="file" id="fileInput" accept=".html,.js,.htm" />
+          <div id="filePreview"></div>
+          <div class="code-label">Extracted code — review before importing</div>
+          <textarea id="importCodeArea2" spellcheck="false" style="width:100%;min-height:160px;background:var(--panel2);border:1px solid var(--border);color:var(--accent2);font-family:var(--font-mono);font-size:11px;line-height:1.6;padding:14px;border-radius:6px;resize:vertical;outline:none;" placeholder="Load a file to extract code…"></textarea>
+          <div id="importError2" style="margin-top:10px;padding:10px 14px;background:rgba(255,80,80,0.1);border:1px solid rgba(255,80,80,0.3);border-radius:5px;font-size:11px;color:#ff8080;font-family:var(--font-mono);display:none;"></div>
+        </div>
+
+        <!-- TAB: Prompt Guide -->
+        <div class="tab-panel" id="tab-prompt">
+          <div class="prompt-box">
+            <div class="prompt-box-label">
+              How it works
+            </div>
+            <div class="prompt-text">MeshForge runs your pasted code with access to <em>THREE</em> (r128).
+
+Your code must assign a value to a variable named <em>result</em>. It can be:
+  • <em>THREE.Group</em>   — multiple meshes (recommended for complex objects)
+  • <em>THREE.Mesh</em>    — a single mesh
+  • <em>THREE.BufferGeometry</em> — raw geometry (gets auto-wrapped)
+
+Each mesh in the group becomes a separate scene object, preserving its position, rotation, and scale so you can transform parts independently.
+
+Materials are preserved for preview but normalized to <em>MeshPhongMaterial</em> for OBJ export compatibility.</div>
+          </div>
+          <div class="prompt-box">
+            <div class="prompt-box-label">
+              Copy &amp; send this prompt to an LLM
+              <button class="prompt-copy-btn" id="copyFullPromptBtn">Copy</button>
+            </div>
+            <div class="prompt-text" id="fullPromptText">Create a [OBJECT] using Three.js r128 geometry primitives.
+
+Rules:
+- Use only built-in Three.js geometries (BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry, TorusGeometry, etc.)
+- Combine all parts into a THREE.Group assigned to a variable called <em>result</em>
+- No import statements, no render loops, no scene/camera/renderer setup
+- Position parts relative to the group's origin (0,0,0)
+- Use THREE.MeshPhongMaterial for materials
+- Keep the overall size roughly within a 4×4×4 unit bounding box
+
+Example structure:
+const result = new THREE.Group();
+
+const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 2, 16);
+const bodyMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+result.add(body);
+
+// ... more parts ...</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-footer-hint" id="importFooterHint">Code is executed locally in your browser. Only <code>THREE</code> is in scope.</div>
+        <button class="modal-import-btn" id="doImportBtn">Import to Scene</button>
+      </div>
+    </div>
+  </div>
+
   <aside>
-    <div class="section-label">Shape</div>
-    <div class="shape-grid" id="shapeGrid">
-
-      <button class="shape-btn active" data-shape="box">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M6 22L16 28L26 22V10L16 4L6 10V22Z"/>
-          <path d="M16 28V16" stroke-dasharray="2 2"/>
-          <path d="M6 10L16 16L26 10" stroke-dasharray="2 2"/>
-        </svg>
-        BOX
+    <!-- ── SIDEBAR TABS ── -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" id="tabBuild" data-sidepanel="build">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M17 17l4 4M17 21l4-4"/></svg>
+        Build
       </button>
-
-      <button class="shape-btn" data-shape="sphere">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="16" cy="16" r="11"/>
-          <ellipse cx="16" cy="16" rx="11" ry="5" stroke-dasharray="3 2"/>
-          <path d="M16 5V27" stroke-dasharray="3 2"/>
-        </svg>
-        SPHERE
+      <button class="sidebar-tab" id="tabScene" data-sidepanel="scene">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        Scene
+        <span class="scene-tab-badge" id="sceneTabBadge" style="display:none">0</span>
       </button>
-
-      <button class="shape-btn" data-shape="cylinder">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
-          <ellipse cx="16" cy="9" rx="10" ry="4"/>
-          <ellipse cx="16" cy="23" rx="10" ry="4" stroke-dasharray="3 2"/>
-          <line x1="6" y1="9" x2="6" y2="23"/>
-          <line x1="26" y1="9" x2="26" y2="23"/>
-        </svg>
-        CYLINDER
-      </button>
-
-      <button class="shape-btn" data-shape="torus">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
-          <ellipse cx="16" cy="16" rx="11" ry="5"/>
-          <ellipse cx="16" cy="16" rx="5" ry="2.2"/>
-          <ellipse cx="16" cy="18" rx="11" ry="5" stroke-dasharray="3 2"/>
-        </svg>
-        TORUS
-      </button>
-
-      <button class="shape-btn" data-shape="cone">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M16 4L26 26H6L16 4Z"/>
-          <ellipse cx="16" cy="26" rx="10" ry="3.5" stroke-dasharray="3 2"/>
-        </svg>
-        CONE
-      </button>
-
-      <button class="shape-btn" data-shape="icosahedron">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
-          <polygon points="16,4 26,14 22,26 10,26 6,14"/>
-          <polygon points="16,4 6,14 16,10 26,14"/>
-          <line x1="16" y1="10" x2="10" y2="26" stroke-dasharray="2 2"/>
-          <line x1="16" y1="10" x2="22" y2="26" stroke-dasharray="2 2"/>
-        </svg>
-        ISO
-      </button>
-
     </div>
 
-    <div class="section-label">Parameters</div>
-    <div class="params" id="paramsContainer"></div>
+    <!-- ── BUILD PANEL ── -->
+    <div class="sidepanel" id="panel-build">
+      <div class="section-label">Shape</div>
+      <div class="shape-grid" id="shapeGrid">
 
-    <div class="section-label">Material</div>
-    <div class="display-row">
-      <label>Color</label>
-      <div class="color-row" id="colorRow">
-        <div class="color-swatch active" data-color="#4af0c4" style="background:#4af0c4"></div>
-        <div class="color-swatch" data-color="#ff6b2b" style="background:#ff6b2b"></div>
-        <div class="color-swatch" data-color="#4a9eff" style="background:#4a9eff"></div>
-        <div class="color-swatch" data-color="#f0e04a" style="background:#f0e04a"></div>
-        <div class="color-swatch" data-color="#e04af0" style="background:#e04af0"></div>
-        <div class="color-swatch" data-color="#ffffff" style="background:#ffffff"></div>
-        <div class="color-swatch" data-color="#aaaaaa" style="background:#aaaaaa"></div>
+        <button class="shape-btn active" data-shape="box">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 22L16 28L26 22V10L16 4L6 10V22Z"/>
+            <path d="M16 28V16" stroke-dasharray="2 2"/>
+            <path d="M6 10L16 16L26 10" stroke-dasharray="2 2"/>
+          </svg>
+          BOX
+        </button>
+
+        <button class="shape-btn" data-shape="sphere">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="16" cy="16" r="11"/>
+            <ellipse cx="16" cy="16" rx="11" ry="5" stroke-dasharray="3 2"/>
+            <path d="M16 5V27" stroke-dasharray="3 2"/>
+          </svg>
+          SPHERE
+        </button>
+
+        <button class="shape-btn" data-shape="cylinder">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <ellipse cx="16" cy="9" rx="10" ry="4"/>
+            <ellipse cx="16" cy="23" rx="10" ry="4" stroke-dasharray="3 2"/>
+            <line x1="6" y1="9" x2="6" y2="23"/>
+            <line x1="26" y1="9" x2="26" y2="23"/>
+          </svg>
+          CYLINDER
+        </button>
+
+        <button class="shape-btn" data-shape="torus">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <ellipse cx="16" cy="16" rx="11" ry="5"/>
+            <ellipse cx="16" cy="16" rx="5" ry="2.2"/>
+            <ellipse cx="16" cy="18" rx="11" ry="5" stroke-dasharray="3 2"/>
+          </svg>
+          TORUS
+        </button>
+
+        <button class="shape-btn" data-shape="cone">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M16 4L26 26H6L16 4Z"/>
+            <ellipse cx="16" cy="26" rx="10" ry="3.5" stroke-dasharray="3 2"/>
+          </svg>
+          CONE
+        </button>
+
+        <button class="shape-btn" data-shape="icosahedron">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="16,4 26,14 22,26 10,26 6,14"/>
+            <polygon points="16,4 6,14 16,10 26,14"/>
+            <line x1="16" y1="10" x2="10" y2="26" stroke-dasharray="2 2"/>
+            <line x1="16" y1="10" x2="22" y2="26" stroke-dasharray="2 2"/>
+          </svg>
+          ISO
+        </button>
+
+      </div>
+
+      <div class="section-label">Parameters</div>
+      <div class="params" id="paramsContainer"></div>
+
+      <div class="section-label">Material</div>
+      <div class="display-row">
+        <label>Color</label>
+        <div class="color-row" id="colorRow">
+          <div class="color-swatch active" data-color="#4af0c4" style="background:#4af0c4"></div>
+          <div class="color-swatch" data-color="#ff6b2b" style="background:#ff6b2b"></div>
+          <div class="color-swatch" data-color="#4a9eff" style="background:#4a9eff"></div>
+          <div class="color-swatch" data-color="#f0e04a" style="background:#f0e04a"></div>
+          <div class="color-swatch" data-color="#e04af0" style="background:#e04af0"></div>
+          <div class="color-swatch" data-color="#ffffff" style="background:#ffffff"></div>
+          <div class="color-swatch" data-color="#aaaaaa" style="background:#aaaaaa"></div>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <label>Wireframe</label>
+        <div class="toggle" id="wireframeToggle"></div>
+      </div>
+
+      <div class="toggle-row">
+        <label>Show Grid</label>
+        <div class="toggle on" id="gridToggle"></div>
+      </div>
+
+      <div class="toggle-row">
+        <label>Auto-Rotate</label>
+        <div class="toggle on" id="rotateToggle"></div>
+      </div>
+
+      <div class="export-area" style="margin-top:auto;">
+        <button class="add-to-scene-btn" id="addToSceneBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add to Scene
+        </button>
       </div>
     </div>
 
-    <div class="toggle-row">
-      <label>Wireframe</label>
-      <div class="toggle" id="wireframeToggle"></div>
-    </div>
+    <!-- ── SCENE PANEL ── -->
+    <div class="sidepanel" id="panel-scene" style="display:none">
+      <div class="section-label" id="sceneCountLabel">Objects in Scene</div>
+      <div class="scene-list" id="sceneList">
+        <div class="scene-empty">No objects yet — switch to Build to add one</div>
+      </div>
 
-    <div class="toggle-row">
-      <label>Show Grid</label>
-      <div class="toggle on" id="gridToggle"></div>
-    </div>
+      <div id="transformSection" style="display:none">
+        <div class="section-label">Transform</div>
+        <div id="transformParams"></div>
+      </div>
 
-    <div class="toggle-row">
-      <label>Auto-Rotate</label>
-      <div class="toggle on" id="rotateToggle"></div>
-    </div>
-
-    <div class="section-label" id="sceneCountLabel">Objects in Scene</div>
-    <div class="scene-list" id="sceneList">
-      <div class="scene-empty">No objects yet — add one above</div>
-    </div>
-
-    <div id="transformSection" style="display:none">
-      <div class="section-label">Transform</div>
-      <div id="transformParams"></div>
-    </div>
-
-    <div class="export-area">
-      <button class="add-to-scene-btn" id="addToSceneBtn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Add to Scene
-      </button>
-      <button class="export-btn" id="exportBtn" disabled>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M12 3v12M7 11l5 5 5-5M3 18h18v2H3z"/>
-        </svg>
-        Export .OBJ
-      </button>
-      <div class="export-meta" id="exportMeta">Ready to export</div>
-      <div id="objPreview"></div>
+      <div class="export-area" style="margin-top:auto;">
+        <button class="export-btn" id="exportBtn" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 3v12M7 11l5 5 5-5M3 18h18v2H3z"/>
+          </svg>
+          Export .OBJ
+        </button>
+        <div class="export-meta" id="exportMeta">Add objects to export</div>
+        <div id="objPreview"></div>
+      </div>
     </div>
 
   </aside>
@@ -955,12 +1422,21 @@ function renderSceneList() {
   const exportBtn = document.getElementById('exportBtn');
   const count     = committedObjects.length;
 
+  // Update tab badge
+  const badge = document.getElementById('sceneTabBadge');
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+
   label.textContent = count > 0 ? `Objects in Scene — ${count}` : 'Objects in Scene';
   exportBtn.disabled = count === 0;
 
   if (count === 0) {
-    list.innerHTML = '<div class="scene-empty">No objects yet — add one above</div>';
-    document.getElementById('exportMeta').textContent = 'Add objects to scene to export';
+    list.innerHTML = '<div class="scene-empty">No objects yet — switch to Build to add one</div>';
+    document.getElementById('exportMeta').textContent = 'Add objects to export';
     return;
   }
 
@@ -1016,6 +1492,7 @@ function addToScene() {
 
   committedObjects.push({ mesh, shapeName: committedShape, color: committedColor });
   renderSceneList();
+  switchSidebarTab('scene');
 
   // Reset staging controls to defaults
   currentColor = '#4af0c4';
@@ -1197,6 +1674,260 @@ function animate() {
 }
 
 document.getElementById('addToSceneBtn').addEventListener('click', addToScene);
+
+// ──────────────────────────────────────────────
+//  SIDEBAR TAB SWITCHING
+// ──────────────────────────────────────────────
+function switchSidebarTab(name) {
+  document.querySelectorAll('.sidebar-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.sidepanel === name);
+  });
+  document.querySelectorAll('.sidepanel').forEach(p => {
+    p.style.display = p.id === `panel-${name}` ? 'flex' : 'none';
+  });
+}
+
+document.querySelectorAll('.sidebar-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchSidebarTab(tab.dataset.sidepanel));
+});
+
+// ──────────────────────────────────────────────
+//  CODE IMPORT SYSTEM
+// ──────────────────────────────────────────────
+
+// Modal open/close
+const importOverlay = document.getElementById('importOverlay');
+document.getElementById('openImportBtn').addEventListener('click', () => {
+  importOverlay.classList.add('open');
+});
+document.getElementById('closeImportBtn').addEventListener('click', () => {
+  importOverlay.classList.remove('open');
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importError2').style.display = 'none';
+});
+importOverlay.addEventListener('click', e => {
+  if (e.target === importOverlay) importOverlay.classList.remove('open');
+});
+
+// Tab switching
+let activeTab = 'paste';
+document.querySelectorAll('.modal-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    activeTab = tab.dataset.tab;
+    document.getElementById(`tab-${activeTab}`).classList.add('active');
+  });
+});
+
+// ── Prompt generator ──
+const PROMPT_TEMPLATE = (subject) =>
+`Create a ${subject || '[OBJECT]'} using Three.js r128 geometry primitives.
+
+Rules:
+- Use only built-in Three.js geometries (BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry, TorusGeometry, etc.)
+- Combine all parts into a THREE.Group assigned to a variable called "result"
+- No import statements, no render loops, no scene/camera/renderer setup
+- Position parts relative to the group's origin (0,0,0)
+- Use THREE.MeshPhongMaterial for materials
+- Keep the overall size roughly within a 4×4×4 unit bounding box
+
+Example structure:
+const result = new THREE.Group();
+
+const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 2, 16);
+const bodyMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+result.add(body);
+
+// ... more parts ...`;
+
+document.getElementById('copyPromptBtn').addEventListener('click', () => {
+  const subject = document.getElementById('subjectInput').value.trim();
+  navigator.clipboard.writeText(PROMPT_TEMPLATE(subject)).then(() => {
+    const btn = document.getElementById('copyPromptBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Prompt', 1800);
+  });
+});
+
+document.getElementById('copyFullPromptBtn').addEventListener('click', () => {
+  // Strip the <em> tags from the display text
+  const raw = document.getElementById('fullPromptText').textContent;
+  navigator.clipboard.writeText(raw).then(() => {
+    const btn = document.getElementById('copyFullPromptBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  });
+});
+
+// ── Code execution engine ──
+function runImportCode(code, errorElId) {
+  const errorEl = document.getElementById(errorElId);
+  errorEl.style.display = 'none';
+
+  if (!code.trim()) {
+    errorEl.textContent = 'No code to import.';
+    errorEl.style.display = 'block';
+    return false;
+  }
+
+  let result;
+  try {
+    // Execute user code with only THREE in scope
+    const fn = new Function('THREE', code + '\n; return (typeof result !== "undefined") ? result : undefined;');
+    result = fn(THREE);
+  } catch (err) {
+    errorEl.textContent = '⚠ Runtime error: ' + err.message;
+    errorEl.style.display = 'block';
+    return false;
+  }
+
+  if (!result) {
+    errorEl.textContent = '⚠ No "result" variable found. Make sure your code assigns a THREE.Group, THREE.Mesh, or THREE.BufferGeometry to a variable named "result".';
+    errorEl.style.display = 'block';
+    return false;
+  }
+
+  // Collect meshes from the result
+  const meshesToAdd = [];
+
+  function collectMeshes(obj, label) {
+    if (obj.isBufferGeometry) {
+      // Wrap raw geometry in a mesh
+      const mat = new THREE.MeshPhongMaterial({ color: 0x4af0c4, shininess: 80 });
+      const mesh = new THREE.Mesh(obj, mat);
+      meshesToAdd.push({ mesh, shapeName: label, color: '#4af0c4' });
+    } else if (obj.isMesh) {
+      // Normalize material to MeshPhongMaterial
+      const srcColor = obj.material && obj.material.color
+        ? '#' + obj.material.color.getHexString()
+        : '#4af0c4';
+      const mat = new THREE.MeshPhongMaterial({ color: srcColor, shininess: 80 });
+      const mesh = new THREE.Mesh(obj.geometry.clone(), mat);
+      mesh.position.copy(obj.position);
+      mesh.rotation.copy(obj.rotation);
+      mesh.scale.copy(obj.scale);
+      meshesToAdd.push({ mesh, shapeName: label, color: srcColor });
+    } else if (obj.isGroup || obj.isObject3D) {
+      obj.updateWorldMatrix(true, true);
+      let partIndex = 1;
+      obj.traverse(child => {
+        if (child.isMesh) {
+          const srcColor = child.material && child.material.color
+            ? '#' + child.material.color.getHexString()
+            : '#4af0c4';
+          const mat = new THREE.MeshPhongMaterial({ color: srcColor, shininess: 80, specular: 0x444444 });
+          const mesh = new THREE.Mesh(child.geometry.clone(), mat);
+          // Bake world transform
+          child.updateWorldMatrix(true, false);
+          mesh.applyMatrix4(child.matrixWorld);
+          const partName = obj.children.length === 1 ? label : `${label} [${partIndex++}]`;
+          meshesToAdd.push({ mesh, shapeName: partName, color: srcColor });
+        }
+      });
+    } else {
+      errorEl.textContent = '⚠ "result" must be a THREE.Group, THREE.Mesh, or THREE.BufferGeometry. Got: ' + (result.type || typeof result);
+      errorEl.style.display = 'block';
+      return false;
+    }
+    return true;
+  }
+
+  const subjectEl = document.getElementById('subjectInput');
+  const label = (subjectEl && subjectEl.value.trim()) ? subjectEl.value.trim() : 'imported';
+
+  if (!collectMeshes(result, label)) return false;
+
+  if (meshesToAdd.length === 0) {
+    errorEl.textContent = '⚠ No meshes found in the result group.';
+    errorEl.style.display = 'block';
+    return false;
+  }
+
+  // Add all meshes to the scene
+  meshesToAdd.forEach(obj => {
+    obj.mesh.castShadow = true;
+    obj.mesh.receiveShadow = true;
+    scene.add(obj.mesh);
+    committedObjects.push(obj);
+  });
+
+  renderSceneList();
+  importOverlay.classList.remove('open');
+  switchSidebarTab('scene');
+  showToast(`✓ Imported ${meshesToAdd.length} mesh${meshesToAdd.length !== 1 ? 'es' : ''}`);
+  return true;
+}
+
+// ── Import button ──
+document.getElementById('doImportBtn').addEventListener('click', () => {
+  if (activeTab === 'paste') {
+    const code = document.getElementById('importCodeArea').value;
+    runImportCode(code, 'importError');
+  } else if (activeTab === 'file') {
+    const code = document.getElementById('importCodeArea2').value;
+    runImportCode(code, 'importError2');
+  } else {
+    // On prompt tab, switch to paste tab
+    document.querySelectorAll('.modal-tab')[0].click();
+  }
+});
+
+// ── File import ──
+function extractThreeJSCode(content, filename) {
+  // If it's an HTML file, extract script tag contents
+  if (filename.endsWith('.html') || filename.endsWith('.htm')) {
+    const scriptMatches = [...content.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/gi)];
+    // Filter out tiny scripts, prefer the largest one containing THREE references
+    const candidates = scriptMatches
+      .map(m => m[1].trim())
+      .filter(s => s.length > 50);
+
+    // Prefer scripts that reference geometry or THREE
+    const threeScripts = candidates.filter(s =>
+      /Geometry|THREE\.|\.add\(|result\s*=/.test(s)
+    );
+
+    if (threeScripts.length > 0) {
+      return threeScripts.join('\n\n// --- next script block ---\n\n');
+    }
+    return candidates.join('\n\n');
+  }
+  // JS file: return as-is
+  return content;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const preview = document.getElementById('filePreview');
+  const codeArea = document.getElementById('importCodeArea2');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const content = e.target.result;
+    const extracted = extractThreeJSCode(content, file.name);
+    codeArea.value = extracted;
+    preview.innerHTML = `<strong>${file.name}</strong> — ${(file.size/1024).toFixed(1)} KB · ${extracted.split('\n').length} lines extracted`;
+    preview.style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFile(e.dataTransfer.files[0]);
+});
 
 // ── INIT ──
 selectShape('box');
