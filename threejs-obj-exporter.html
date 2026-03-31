@@ -761,7 +761,20 @@
     }
 
     /* Transform panel */
-    #transformSection { border-top: 1px solid var(--border); }
+    #transformSection { border-top: 1px solid var(--border); flex-shrink: 0; }
+
+    /* Scene panel: keep transform controls always visible */
+    #panel-scene {
+      overflow: hidden;
+    }
+    #panel-scene .scene-list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    #panel-scene .scene-list::-webkit-scrollbar { width: 4px; }
+    #panel-scene .scene-list::-webkit-scrollbar-track { background: transparent; }
+    #panel-scene .scene-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     /* Export button disabled state */
     .export-btn:disabled {
