@@ -2,7 +2,7 @@
 
 **A browser-based 3D object builder and OBJ exporter powered by Three.js.**
 
-Build 3D scenes from primitives, import custom Three.js geometry, and export everything as a clean `.obj` file — no install, no build step, just open the HTML file.
+Build 3D scenes from primitives, import custom Three.js geometry, and export everything as a clean `.obj` file — no install, no build step, just open the HTML file. Examples were created using the prompt generator in the app with frontier models.
 
 ![Three.js](https://img.shields.io/badge/Three.js-r128-orange?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
