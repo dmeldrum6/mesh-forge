@@ -960,25 +960,7 @@ Materials are preserved for preview but normalized to <em>MeshPhongMaterial</em>
               Copy &amp; send this prompt to an LLM
               <button class="prompt-copy-btn" id="copyFullPromptBtn">Copy</button>
             </div>
-            <div class="prompt-text" id="fullPromptText">Create a [OBJECT] using Three.js r128 geometry primitives.
-
-Rules:
-- Use only built-in Three.js geometries (BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry, TorusGeometry, etc.)
-- Combine all parts into a THREE.Group assigned to a variable called <em>result</em>
-- No import statements, no render loops, no scene/camera/renderer setup
-- Position parts relative to the group's origin (0,0,0)
-- Use THREE.MeshPhongMaterial for materials
-- Keep the overall size roughly within a 4×4×4 unit bounding box
-
-Example structure:
-const result = new THREE.Group();
-
-const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 2, 16);
-const bodyMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
-const body = new THREE.Mesh(bodyGeo, bodyMat);
-result.add(body);
-
-// ... more parts ...</div>
+            <div class="prompt-text" id="fullPromptText"></div>
           </div>
         </div>
       </div>
@@ -1596,8 +1578,19 @@ function mergeGeometries(objects) {
   // Bake world transforms and collect clones
   const clones = objects.map(({ mesh }) => {
     mesh.updateWorldMatrix(true, false);
-    const geo = mesh.geometry.clone();
+    let geo = mesh.geometry.clone();
     geo.applyMatrix4(mesh.matrixWorld);
+    // A mirrored transform (negative scale) reverses triangle winding,
+    // which shows up as inside-out faces in other 3D apps. Flip it back.
+    if (mesh.matrixWorld.determinant() < 0) {
+      if (!geo.index) {
+        const idx = [];
+        for (let i = 0; i < geo.attributes.position.count; i++) idx.push(i);
+        geo.setIndex(idx);
+      }
+      const ix = geo.index.array;
+      for (let i = 0; i < ix.length; i += 3) { const t = ix[i + 1]; ix[i + 1] = ix[i + 2]; ix[i + 2] = t; }
+    }
     return geo;
   });
 
@@ -2254,24 +2247,72 @@ document.querySelectorAll('.modal-tab').forEach(tab => {
 
 // ── Prompt generator ──
 const PROMPT_TEMPLATE = (subject) =>
-`Create a ${subject || '[OBJECT]'} using Three.js r128 geometry primitives.
+`You are an expert 3D modeler writing Three.js (r128) code. Build a detailed, well-proportioned 3D model of: ${subject || '[OBJECT]'}
 
-Rules:
-- Use only built-in Three.js geometries (BoxGeometry, CylinderGeometry, SphereGeometry, ConeGeometry, TorusGeometry, etc.)
-- Combine all parts into a THREE.Group assigned to a variable called "result"
-- No import statements, no render loops, no scene/camera/renderer setup
-- Position parts relative to the group's origin (0,0,0)
-- Use THREE.MeshPhongMaterial for materials
-- Keep the overall size roughly within a 4×4×4 unit bounding box
+The code is executed with new Function('THREE', code) and then exported to Wavefront OBJ. Only the THREE namespace is in scope.
 
-Example structure:
+## Step 1: Plan (as JavaScript comments at the top of the code)
+- Think of reference proportions for a real ${subject || '[OBJECT]'} and list its main parts, sub-parts and small details (aim for roughly 15–60 meshes depending on complexity).
+- Choose the overall size first, then define every key dimension as a named const (e.g. const bodyH = 1.6;). Compute all positions FROM those constants (e.g. roof.position.y = baseH + roofH / 2) rather than typing loose numbers. This keeps parts touching instead of floating or drifting apart.
+
+## Step 2: Coordinate system and scale
+- +Y is up. The model stands on the ground plane: its lowest point is at y = 0.
+- Center it on X and Z. The front of the object faces +Z.
+- Overall size: largest dimension about 3–4 units.
+
+## Step 3: Geometry (core r128 only; nothing from examples/jsm)
+- Simple solids: BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, TorusKnotGeometry, IcosahedronGeometry, OctahedronGeometry, DodecahedronGeometry, TetrahedronGeometry.
+- Prefer these for good shapes:
+  • LatheGeometry(points of THREE.Vector2) for anything round in profile: vases, bottles, bodies, lamp shades, chess pieces, nose cones, wheels with profiles.
+  • ExtrudeGeometry(THREE.Shape, { depth, bevelEnabled: true, bevelThickness, bevelSize, bevelSegments: 2 }) for flat outlines with thickness: blades, wings, fins, brackets, letters, panels, cut-outs (use shape.holes).
+  • TubeGeometry(new THREE.CatmullRomCurve3([...Vector3]), tubularSegments, radius, radialSegments) for pipes, cables, handles, tails, horns, branches.
+  • SphereGeometry with phi/theta ranges for domes and caps; scale a sphere for ellipsoids.
+- Not available in r128, do not use: CapsuleGeometry, RoundedBoxGeometry, BufferGeometryUtils, mergeBufferGeometries, CSG/boolean operations, loaders, textures.
+- Do not use THREE.Line, THREE.Points, EdgesGeometry or WireframeGeometry, because only meshes are exported.
+- Avoid zero-thickness surfaces (PlaneGeometry, CircleGeometry, RingGeometry, ShapeGeometry). Give every part real volume (a thin box or an extruded shape).
+- Segment counts: 24–48 radial segments for large visible curves, 8–16 for small details. Keep the total under about 150k triangles.
+
+## Step 4: Assembly rules
+- Remember the defaults: Box, Cylinder, Cone and Sphere are centered on their origin. Cylinder and Cone run along Y (cone tip at +height/2). Torus lies in the XY plane (rotate x by Math.PI/2 to lay it flat). Lathe revolves around Y. Extrude extrudes along +Z from z = 0 (call geometry.center() or translate to fix).
+- Rotations are in radians.
+- Parts that connect must overlap slightly (about 0.01–0.05). Never leave gaps, and never let two faces sit exactly coplanar.
+- Mirror symmetric parts (legs, wheels, arms, windows) by placing copies at -x with a loop or a helper function. NEVER use a negative scale to mirror.
+- Prefer real dimensions over mesh.scale. Do not put non-uniform scale on a Group that contains rotated children.
+- Nested THREE.Groups are fine for sub-assemblies (e.g. a wheel group). Give every mesh a descriptive name: mesh.name = 'front_left_wheel'.
+- Add believable secondary detail: trims, rims, bolts, handles, panel lines (thin raised boxes), bevels. Avoid a "few big boxes" look.
+
+## Step 5: Materials
+- Use new THREE.MeshPhongMaterial({ color: 0xRRGGBB }), one solid color per mesh. Only the color is kept, so do not rely on textures, transparency, emissive or vertex colors.
+- Use a small, coherent palette (4–8 colors) defined as consts, with realistic colors for each material (metal, wood, glass, rubber, paint).
+
+## Step 6: Output format
+- Reply with ONE JavaScript code block and nothing else.
+- No import/export statements, no scene, camera, renderer, lights, controls or animation loop, no DOM access.
+- The final group must be assigned to a top-level variable named result: const result = new THREE.Group();
+
+## Step 7: Self-check before answering
+- Every part touches or overlaps the part it attaches to. Nothing floats.
+- The lowest point is at y = 0 and the model is centered on X/Z.
+- Proportions match the real object. Symmetric parts are matched.
+- Only core r128 APIs are used, and the code runs without errors.
+
+Skeleton:
+// PLAN: parts = base, body, ...
 const result = new THREE.Group();
+const C = { body: 0x8a8f98, trim: 0x2b2d31 };
+const mat = (c) => new THREE.MeshPhongMaterial({ color: c });
+function part(name, geo, color, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, parent = result) {
+  const m = new THREE.Mesh(geo, mat(color));
+  m.name = name;
+  m.position.set(x, y, z);
+  m.rotation.set(rx, ry, rz);
+  parent.add(m);
+  return m;
+}
 
-const bodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 2, 16);
-const bodyMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
-const body = new THREE.Mesh(bodyGeo, bodyMat);
-result.add(body);
-
+const baseH = 0.3, bodyH = 2.0, bodyR = 0.6;
+part('base', new THREE.CylinderGeometry(0.9, 1.0, baseH, 40), C.trim, 0, baseH / 2, 0);
+part('body', new THREE.CylinderGeometry(bodyR, bodyR, bodyH, 40), C.body, 0, baseH + bodyH / 2 - 0.02, 0);
 // ... more parts ...`;
 
 document.getElementById('copyPromptBtn').addEventListener('click', () => {
@@ -2283,8 +2324,15 @@ document.getElementById('copyPromptBtn').addEventListener('click', () => {
   });
 });
 
+// Render the full prompt in the Prompt Guide tab from the same template, kept in sync with the subject field
+function renderFullPrompt() {
+  const subject = document.getElementById('subjectInput').value.trim();
+  document.getElementById('fullPromptText').textContent = PROMPT_TEMPLATE(subject);
+}
+document.getElementById('subjectInput').addEventListener('input', renderFullPrompt);
+renderFullPrompt();
+
 document.getElementById('copyFullPromptBtn').addEventListener('click', () => {
-  // Strip the <em> tags from the display text
   const raw = document.getElementById('fullPromptText').textContent;
   navigator.clipboard.writeText(raw).then(() => {
     const btn = document.getElementById('copyFullPromptBtn');
@@ -2294,6 +2342,21 @@ document.getElementById('copyFullPromptBtn').addEventListener('click', () => {
 });
 
 // ── Code execution engine ──
+// LLM replies often wrap code in markdown fences, add prose, or include
+// ES module imports. Strip those so the code runs as-is.
+function sanitizeLLMCode(code) {
+  const fence = /```[a-zA-Z]*\s*\n([\s\S]*?)```/g;
+  const blocks = [...code.matchAll(fence)].map(m => m[1]);
+  if (blocks.length) {
+    // Prefer the block that defines `result`, else the longest one
+    code = blocks.find(b => /\bresult\s*=/.test(b)) || blocks.sort((a, b) => b.length - a.length)[0];
+  }
+  return code
+    .replace(/^\s*import\s[^;\n]*;?\s*$/gm, '')
+    .replace(/^\s*export\s+default\s+result\s*;?\s*$/gm, '')
+    .replace(/^(\s*)export\s+(const|let|var|function|class)\b/gm, '$1$2');
+}
+
 function runImportCode(code, errorElId) {
   const errorEl = document.getElementById(errorElId);
   errorEl.style.display = 'none';
@@ -2303,6 +2366,8 @@ function runImportCode(code, errorElId) {
     errorEl.style.display = 'block';
     return false;
   }
+
+  code = sanitizeLLMCode(code);
 
   let result;
   try {
@@ -2354,7 +2419,7 @@ function runImportCode(code, errorElId) {
           // Bake world transform
           child.updateWorldMatrix(true, false);
           mesh.applyMatrix4(child.matrixWorld);
-          const partName = obj.children.length === 1 ? label : `${label} [${partIndex++}]`;
+          const partName = child.name ? `${label} · ${child.name}` : (obj.children.length === 1 ? label : `${label} [${partIndex++}]`);
           meshesToAdd.push({ mesh, shapeName: partName, color: srcColor });
         }
       });
