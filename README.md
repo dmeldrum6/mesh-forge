@@ -10,7 +10,7 @@ Build 3D scenes from primitives, import custom Three.js geometry, and export eve
 
 ---
 <img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/0447194e-3a9f-4cb6-9f10-a77191aacd00" />
-<img width="1917" height="909" alt="image" src="https://github.com/user-attachments/assets/c45cd2bf-da80-4cf2-9545-8ede1a72509d" />
+<img width="1913" height="905" alt="image" src="https://github.com/user-attachments/assets/a6c18b8d-e5bb-4cd3-8cad-16190a43259e" />
 
 
 ## Features
