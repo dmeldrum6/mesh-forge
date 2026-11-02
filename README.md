@@ -78,7 +78,15 @@ result.add(top);
 
 ### Using the AI Prompt Generator
 
-Inside the Import modal, switch to the **Prompt** tab. Enter a subject (e.g. `"rocket ship"`) and click **Generate Prompt** to get a ready-made prompt you can paste into Claude, ChatGPT, or any other AI assistant. The generated code can then be pasted straight back into the code import box.
+Inside the Import modal, enter a subject (e.g. `"rocket ship"`) and click **Copy Prompt**, or open the **Prompt Guide** tab to read the full prompt first. Paste it into Claude, ChatGPT, or any other AI assistant. The prompt asks the model to:
+
+- plan the parts and define key dimensions as named constants, then compute positions from them so parts don't float
+- use a consistent frame (+Y up, standing on y = 0, front facing +Z) so exports drop straight into other tools
+- use `LatheGeometry`, `ExtrudeGeometry` and `TubeGeometry` for organic and profiled shapes, not just boxes and cylinders
+- avoid APIs that are missing in r128 or don't survive OBJ export (lines, zero-thickness planes, textures, negative-scale mirroring)
+- name each mesh and check its own work before answering
+
+You can paste the whole reply back into the code box. Markdown code fences, surrounding text and `import`/`export` lines are stripped automatically.
 
 ### Exporting to OBJ
 
